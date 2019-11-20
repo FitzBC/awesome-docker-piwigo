@@ -1,0 +1,32 @@
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: my_secret_pw
+      MYSQL_DATABASE: piwigo
+      MYSQL_USER: piwigo_user
+      MYSQL_PASSWORD: devpass
+    ports:
+      - "9906:3306"
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: photogallary
+    depends_on:
+      - db
+    ports:
+      - "8088:80"
+    stdin_open: true
+    tty: true
+  config:
+    image: debian:jessie
+    depends_on:
+      - db
+      - web
+    volumes:
+      - "./piwigo.config:/usr/local/bin/piwigo.config"
+      - "./config.sh:/usr/local/bin/config.sh"
+      - "./wait-for-it.sh:/usr/local/bin/wait-for-it.sh"
+    command: bash -c "echo 1 && bash config.sh"
